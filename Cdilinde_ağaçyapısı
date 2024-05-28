@@ -1,0 +1,181 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+int ogrenciadet = 0;
+int okul_no[15], vize[15], final[15];
+double ort[15];
+char isim[15][15];
+bool yazilsinMi[15] = {true};
+FILE* dosya;
+
+struct agac {
+    int okulno;
+    char *isim;
+    int vize;
+    int final;
+    double ortalama;
+    struct agac *sol;
+    struct agac *sag;
+};
+struct agac* kok = NULL;
+
+struct agac* yenidal(int okulno, char *isim, int vize, int final, double ortalama) {
+    struct agac* temp = (struct agac*)malloc(sizeof(struct agac));
+    temp->sag = NULL;
+    temp->sol = NULL;
+    temp->vize = vize;
+    temp->final = final;
+    temp->okulno = okulno;
+    temp->isim = strdup(isim);
+    temp->ortalama = ortalama;
+    if (kok == NULL) {
+        kok = temp;
+    }
+    return temp;
+}
+
+void sirala(struct agac *kok) {
+    if (kok != NULL) {
+        sirala(kok->sol);
+        if (kok->ortalama != -1) { // silinenlere -1 değerini atadim
+            printf("%d\t%s\t%d\t%d\t%lf\n", kok->okulno, kok->isim, kok->vize, kok->final, kok->ortalama);
+        }
+        sirala(kok->sag);
+    }
+}
+
+void AraGuncelle(struct agac* kok, char* aranan, char* yeniisim) {
+    if (kok != NULL) {
+        AraGuncelle(kok->sag, aranan, yeniisim);
+        if (strcmp(aranan, kok->isim) == 0) {
+            printf("Ogrenci Bulundu\n");
+            free(kok->isim);
+            kok->isim = strdup(yeniisim);
+            return;
+        }
+        AraGuncelle(kok->sol, aranan, yeniisim);
+    }
+}
+
+struct agac* ekle(struct agac* kok, int okulno, char *isim, int vize, int final, double ortalama) {
+    if (kok == NULL) {
+        return yenidal(okulno, isim, vize, final, ortalama);
+    }
+    if (ortalama > kok->ortalama) {
+        kok->sag = ekle(kok->sag, okulno, isim, vize, final, ortalama);
+    } else {
+        kok->sol = ekle(kok->sol, okulno, isim, vize, final, ortalama);
+    }
+    return kok;
+}
+
+void AgaclariOlustur(struct agac** cift, struct agac** tek, struct agac** hepsi) {
+    dosya = fopen("ogrenci.txt", "r");
+
+    int index = 0;
+    while (fscanf(dosya, "%d\t%s\t%d\t%d\n", &okul_no[index], isim[index], &vize[index], &final[index]) == 4) {
+        ort[index] = vize[index] * 0.4 + final[index] * 0.6;
+        printf("%d\t%s\t%d\t%d\n", okul_no[index], isim[index], vize[index], final[index]);
+        if (okul_no[index] % 2 == 0) {
+            *cift = ekle(*cift, okul_no[index], isim[index], vize[index], final[index], ort[index]);
+        } else {
+            *tek = ekle(*tek, okul_no[index], isim[index], vize[index], final[index], ort[index]);
+        }
+        *hepsi = ekle(*hepsi, okul_no[index], isim[index], vize[index], final[index], ort[index]);
+        index++;
+        ogrenciadet = index;
+    }
+    fclose(dosya);
+}
+void terssirala(struct agac *kok) {
+    if (kok != NULL) {
+        sirala(kok->sag);
+        if (kok->ortalama != -1) { 
+            printf("%d\t%s\t%d\t%d\t%lf\n", kok->okulno, kok->isim, kok->vize, kok->final, kok->ortalama);
+        }
+        sirala(kok->sol);
+    }
+}
+void KayitSil(struct agac* tek, struct agac* cift, struct agac* hepsi) {
+    char tempisim[15];
+    printf("Ogrenci isimi giriniz\n");
+    scanf("%s", tempisim);
+    hepsi = NULL;
+    cift=NULL;
+    tek=NULL;
+    for (int i = 0; i < ogrenciadet; i++) {
+        if (strcmp(isim[i], tempisim) != 0 && ort[i] != -1) {
+        	if(okul_no[i]%2==0){
+           	cift = ekle(cift, okul_no[i], isim[i], vize[i], final[i], ort[i]);
+        		
+		}else{
+             tek = ekle(tek, okul_no[i], isim[i], vize[i], final[i], ort[i]);
+		   	
+		}
+            hepsi = ekle(hepsi, okul_no[i], isim[i], vize[i], final[i], ort[i]);
+        } else if (strcmp(isim[i], tempisim) == 0) {
+            ort[i] = -1;
+        }
+    }
+    sirala(hepsi);
+}
+
+int main() {
+    struct agac* cift = NULL;
+    struct agac* tek = NULL;
+    struct agac* hepsi = NULL;
+    int secim = -1;
+    bool BirlestiMi = false;
+    char tempisim[15], yeniisim[15];
+
+    do {
+        printf("Yapmak istediginiz islemi seciniz\n");
+        printf("1-Agaclari Olustur: \n");
+        printf("2-Listele: \n");
+        printf("3-Guncelle: \n");
+        printf("4-Agaclari birlestir: \n");
+        printf("5-Kayit sil: \n");
+        printf("0-Sonlandir: \n");
+        scanf("%d", &secim);
+
+        if (secim == 1) {
+            AgaclariOlustur(&cift, &tek, &hepsi);
+        } else if (secim == 2) {
+            printf("Tek sayilar\n");
+            printf("Artan Sirada\n");
+            sirala(tek);
+            printf("Azalan Sirada\n");
+            terssirala(tek);
+            printf("\nCift sayilar\n");
+            printf("Artan Sirada\n");
+            sirala(cift);
+            printf("Azalan Sirada\n");
+            terssirala(cift);    
+		      if (BirlestiMi) {
+                printf("\nTum sayilar\n");
+                sirala(hepsi);
+                printf("tertsen\n");
+                terssirala(hepsi);
+            }
+        } else if (secim == 3) {
+            printf("Ogrenci isimi giriniz\n");
+            scanf("%s", tempisim);
+            printf("Yeni isim giriniz\n");
+            scanf("%s", yeniisim);
+//NOT:Hocam guncelle islemini yaptıktan sonra tekrar listeleye basarsanız son haline ulasabilirsiniz.
+            AraGuncelle(cift, tempisim, yeniisim);
+            AraGuncelle(tek, tempisim, yeniisim);
+            AraGuncelle(hepsi, tempisim, yeniisim);
+        } else if (secim == 4) {
+            sirala(hepsi);
+            BirlestiMi = true;
+        } else if (secim == 5) {
+            KayitSil(tek, cift, hepsi);
+        }
+    } while (secim != 0);
+
+    printf("Uygulama sonlandirildi");
+    return 0;
+}
