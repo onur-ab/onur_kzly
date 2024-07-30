@@ -1,0 +1,325 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <math.h>
+
+typedef struct Dugum {
+    int katsayi;
+    int derece;
+    struct Dugum *sonraki;
+} Dugum;
+//*dugumOlustur asil amaci dugum yapisina veri eklemektir.
+Dugum *dugumOlustur(int katsayi, int derece) {
+    Dugum *yeniDugum = (Dugum *)malloc(sizeof(Dugum));//Yeni dugum icin yer ayirtmak icin kullandim.
+    yeniDugum->katsayi = katsayi;
+    yeniDugum->derece = derece;
+    yeniDugum->sonraki = NULL;
+    return yeniDugum;
+    
+}
+// Bagli listeyi gostermek icin fonksiyon olusturdum.
+void BagliListeGoster(Dugum *polinom) {
+    Dugum *atama = polinom;
+    while (atama != NULL) {
+        printf("| %d |", atama->katsayi);
+        printf(" %d |   ", atama->derece);
+        atama = atama->sonraki;
+    }
+    printf("\n");
+    
+}
+//polinom seklinde gostermek icin Bagli_Listele fonksiyonunu olusturdum.
+void Bagli_Listele(Dugum *polinom) {
+    Dugum *atama = polinom;
+    int ilkterim = 1; 
+
+    while (atama != NULL) {
+        if (atama->katsayi != 0) {
+            if (atama->derece != 0) {
+                if (atama->katsayi != 1) { 
+                    printf("%dx^%d  ", atama->katsayi, atama->derece);
+                } else { // Katsayi 1 ise sadece dereceyi yazdirir.
+                    printf("x^%d  ", atama->derece);
+                }
+                ilkterim = 0; 
+            } else { 
+                printf("%d  ", atama->katsayi);
+            }
+        }
+
+        atama = atama->sonraki;
+       /* if (atama != NULL && !ilkterim) { // Sorudaki ciktiya benzer cikti olusturmak icin kullandim.
+            printf(" + ");
+        }*/
+    }
+    printf("\n");
+}
+
+void polinomlariRastgeleUret(Dugum **polinom1, Dugum **polinom2) {
+    srand(time(NULL));
+    int i, derece1, derece2, katsayi1, katsayi2;
+//Derece [0-6] kosulu icin
+    derece1 = rand() % 7;	
+    derece2 = rand() % 7;
+//dereceni random olmasini sagladim.
+    *polinom1 = dugumOlustur(rand() % 11, derece1);//Ayni sekilde katsayininda random olmasini sagladim.
+    Dugum *atama1 = *polinom1;//polinom1 icin dugum tanimladim
+    for (i = derece1 - 1; i >= 0; i--) {//kucukten buyuge olmasini sagladim.
+        katsayi1 = rand() % 11;//katsayi ise [0-10] kosulu icin
+        //katsayi1 = rand() % 10+1;
+        atama1->sonraki = dugumOlustur(katsayi1, i);
+        atama1 = atama1->sonraki;//deger atama yaptim.
+    }
+
+    *polinom2 = dugumOlustur(rand() % 11, derece2);
+    Dugum *atama2 = *polinom2;//polinom2 icin dugum tanimladim
+    for (i = derece2 - 1; i >= 0; i--) {
+        katsayi2 = rand() % 11;
+        //katsayi2 = rand() % 10+1;
+        atama2->sonraki = dugumOlustur(katsayi2, i);
+        atama2 = atama2->sonraki;
+    }
+    
+}
+
+void listele(Dugum *polinom1, Dugum *polinom2) {
+    Dugum *atama1 = polinom1;
+    Dugum *atama2 = polinom2;
+
+    printf("Polinom1: ");
+    while (atama1 != NULL) {
+        if (atama1->katsayi != 0) {
+            if (atama1->derece != 0) {
+                if (atama1->katsayi == 1) { //Katsayı 1 ise ekranda yazdirilmayacaktir kosulu icin.
+                    printf("x^%d  ", atama1->derece);
+                } else {
+                    printf("%dx^%d  ", atama1->katsayi, atama1->derece);
+                }
+            } else { // Derecesi 0 ise sadece katsayiyi yazdirdim.
+                printf("%d  ", atama1->katsayi);
+            }
+        }
+        atama1 = atama1->sonraki;
+    }
+    if (polinom1 == NULL) {
+        printf("0");
+    }
+    printf("\n");
+
+    printf("Polinom2: ");
+    while (atama2 != NULL) {
+        if (atama2->katsayi != 0) {
+            if (atama2->derece != 0) {
+                if (atama2->katsayi == 1) { //Katsayı 1 ise ekranda yazdirilmayacaktir kosulu icin
+                    printf("x^%d ", atama2->derece);
+                } else {
+                    printf("%dx^%d ", atama2->katsayi, atama2->derece);
+                }
+            } else { // Derecesi 0 ise sadece katsayiyi yazdirdim.
+                printf("%d ", atama2->katsayi);
+            }
+        }
+        atama2 = atama2->sonraki;
+    }
+    if (polinom2 == NULL) {
+        printf("0");
+    }
+    printf("\n");
+}
+
+
+void xDegerineGoreHesapla(Dugum *polinom1, Dugum *polinom2, int x) {
+    int sonuc1 = 0, sonuc2 = 0;
+    Dugum *atama1 = polinom1;
+    Dugum *atama2 = polinom2;
+
+    while (atama1 != NULL) {
+        sonuc1 += atama1->katsayi * pow(x, atama1->derece);//dereceye atiyip  ussunu aldim.
+        atama1 = atama1->sonraki;
+    }
+
+    while (atama2 != NULL) {
+        sonuc2 += atama2->katsayi * pow(x, atama2->derece);
+        atama2 = atama2->sonraki;
+    }
+
+    printf("x=%d icin;  Polinom1: %d, Polinom2: %d\n", x, sonuc1, sonuc2);
+}
+
+void polinomDerecesineGoreSil(Dugum **polinom1, Dugum **polinom2, int derece) {
+	// Baslangic ve ara dugumleri tanimladim.
+    Dugum *atama1 = *polinom1, *onceki1 = NULL;
+    Dugum *atama2 = *polinom2, *onceki2 = NULL;
+
+    while (atama1 != NULL && atama1->derece != derece) {
+        onceki1 = atama1;
+        atama1 = atama1->sonraki;
+    }
+//polinom1 ve polinom2 de silinmek istenen derece olup olmadigi icin if-else kosulu kullandim.
+    if (atama1 != NULL) {
+        if (onceki1 == NULL) {
+            *polinom1 = atama1->sonraki;
+            free(atama1);//yer bosaltmak icin
+        } else {
+            onceki1->sonraki = atama1->sonraki;
+            free(atama1);
+        }
+    } else {
+        printf("Polinom1'de derece %d'e sahip terim yoktur.\n", derece);
+    }
+//Silinecek derece polinomda var mi yok mu onun icin while dongusu ile kontrol ettim.
+    while (atama2 != NULL && atama2->derece != derece) {
+        onceki2 = atama2;
+        atama2 = atama2->sonraki;
+    }
+
+    if (atama2 != NULL) {
+        if (onceki2 == NULL) {
+            *polinom2 = atama2->sonraki;
+            free(atama2);
+        } else {
+            onceki2->sonraki = atama2->sonraki;
+            free(atama2);
+        }
+    } else {
+        printf("Polinom2'de derece %d'e sahip terim yoktur.\n", derece);
+    }
+    
+}
+
+void polinomTopla(Dugum *polinom1, Dugum *polinom2) {
+    Dugum *sonuc = NULL;
+    Dugum *atama1 = polinom1;
+    Dugum *atama2 = polinom2;
+
+    while (atama1 != NULL || atama2 != NULL) {
+        int katsayi;
+        int derece;
+//Derece ve katsayiya atadim.
+//Derece buyuk mu kucuk mu kontrolu icin
+//ve de atama1 ve atama2'nin dereceleri esitse katsayilar toplanir.
+        if (atama1 == NULL) {
+            katsayi = atama2->katsayi;
+            derece = atama2->derece;
+            atama2 = atama2->sonraki;
+        } else if (atama2 == NULL) {
+            katsayi = atama1->katsayi;
+            derece = atama1->derece;
+            atama1 = atama1->sonraki;
+        } else if (atama1->derece > atama2->derece) {
+            katsayi = atama1->katsayi;
+            derece = atama1->derece;
+            atama1 = atama1->sonraki;
+        } else if (atama1->derece < atama2->derece) {
+            katsayi = atama2->katsayi;
+            derece = atama2->derece;
+            atama2 = atama2->sonraki;
+        } else {
+            katsayi = atama1->katsayi + atama2->katsayi;//ayni katsayilari topladim.
+            derece = atama1->derece;
+            atama1 = atama1->sonraki;
+            atama2 = atama2->sonraki;
+        }//Ayni dereceleri toplamayi saglamak icin uzun bir else if yapisi kullandim.
+        if (sonuc == NULL) {
+            sonuc = dugumOlustur(katsayi, derece);//polinom olusturmak icin dugum olustururu onuda sonuc degiskenine atar.
+        } else {
+            Dugum *atama = sonuc;
+            while (atama->sonraki != NULL) {
+                atama = atama->sonraki;
+            }
+            atama->sonraki = dugumOlustur(katsayi, derece);//iki polinomun toplamını yeni polinom olusturmak icin yeni dugum olusturur sorudada istedndigi gibi onuda yeni polinom listesine atar
+        }
+    }
+  //Yeni bagli liste olustur adimi icin  
+  printf("Yeni Polinom (Yeni Bagli Liste): ");
+   BagliListeGoster(sonuc);
+    atama1 = sonuc;
+    printf("Sonuc: ");//istenen cikti icin
+    while (atama1 != NULL) {
+        if (atama1->katsayi != 0) {
+            if (atama1->derece != 0) {
+                if (atama1->katsayi == 1) { 
+                    printf("x^%d  ", atama1->derece);
+                } else {
+                    printf("%dx^%d  ", atama1->katsayi, atama1->derece);
+                }
+            } else { 
+                printf("%d ", atama1->katsayi);
+            }
+        }
+        atama1 = atama1->sonraki;
+       /* if (atama1 != NULL) {
+            printf("+ ");
+        }*/
+    }
+    printf("\n");
+}
+//Menu tasarladim.
+int menu() {
+    int secim;
+
+    printf("\n***Menu:***\n");
+    printf("1- Polinomlari Rastgele Uret ve Bagli Listeyi Olustur\n");
+    printf("2- Listele (Polinomal sekilde goster)\n");
+    printf("3- x Degerine Gore Hesapla\n");
+    printf("4- Polinom Derecesine Gore Sil\n");
+    printf("5- Polinom Topla\n");
+    printf("6- PROGRAMI KAPAT\n\n");
+    printf("Seciminiz: ");
+    scanf("%d", &secim);
+
+    return secim;
+}
+
+int main() {
+    int secim, x, derece;
+    Dugum *polinom1 = NULL;
+    Dugum *polinom2 = NULL;
+	
+    do {
+        secim = menu();
+
+        switch (secim) {
+            case 1:
+                polinomlariRastgeleUret(&polinom1, &polinom2);
+                printf("Polinom1: ");
+                BagliListeGoster(polinom1);
+                printf("Polinom2: ");
+                BagliListeGoster(polinom2);
+                printf("Polinom1: ");
+                Bagli_Listele(polinom1);
+                printf("Polinom2: ");
+                Bagli_Listele(polinom2);
+                break;
+            case 2:
+                listele(polinom1, polinom2);
+                break;
+            case 3:
+                printf("x degerini giriniz: ");
+                scanf("%d", &x);
+                xDegerineGoreHesapla(polinom1, polinom2, x);
+                break;
+            case 4:
+                printf("Silinecek dereceyi giriniz: ");
+                scanf("%d", &derece);
+                polinomDerecesineGoreSil(&polinom1, &polinom2, derece);
+                printf("Polinom1: ");
+                BagliListeGoster(polinom1);
+                printf("Polinom2: ");
+                BagliListeGoster(polinom2);
+                break;
+            case 5:
+                polinomTopla(polinom1, polinom2);
+                
+                break;
+            case 6:
+                printf("Programi kapattiniz...\n");
+                break;
+            default:
+                printf("Hatali secim yaptiniz \n");
+                break;
+        }
+    } while (secim != 6);//Cikis yapana kadar donmesi icin do-while kullandim.
+
+    return 0;
+}
